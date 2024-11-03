@@ -4,7 +4,7 @@ export const addUser = async (data) =>{
     const conn = await pool.getConnection();
 
     try{
-        const [confirm] = await pool.query(
+        const [confirm] = await conn.query(
             'SELECT EXISTS(SELECT 1 FROM user WHERE email = ?) as isExistEmail;',
             data.email
         );
@@ -13,7 +13,7 @@ export const addUser = async (data) =>{
             return null;
         }
 
-        const [result] = await pool.query(
+        const [result] = await conn.query(
             'INSERT INTO user(email, name, gender, location, mobileNumber, birth, address, password, userType, userState, point) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
             [
                 data.email,

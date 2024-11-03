@@ -13,7 +13,7 @@ export const userSignUp = async(data)=>{
         "gender": data.gender,
         "location": data.location,
         "mobileNumber": data.mobileNumber,
-        "birth": birth,
+        "birth": data.birth,
         "address": data.address,
         "password": data.password,
         "passwordConfirm": data.passwordConfirm,
