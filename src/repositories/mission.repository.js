@@ -1,18 +1,32 @@
-import { pool } from "../db.config.js";
+import { prisma } from "../db.config.js";
 
 export const addMission = async (missionData) => {
-    const conn = await pool.getConnection();
+  try {
+    const mission = await prisma.mission.create({
+      data: {
+        store_id: missionData.storeId,
+        point: missionData.point,
+        deadline: missionData.deadline,
+        content: missionData.content,
+      },
+    });
+    return mission.id;
+  } catch (err) {
+    throw new Error(`Mission creation failed: ${err.message}`);
+  }
+};
 
-    try {
-        const [result] = await pool.query(
-            `INSERT INTO mission (store_id, point, deadline, content) VALUES (?, ?, ?, ?)`,
-            [missionData.storeId, missionData.point, missionData.deadline, missionData.content]
-        );
-
-        return result.insertId;
-    } catch (err) {
-        throw new Error(`Mission creation failed: ${err.message}`);
-    } finally {
-        conn.release();
-    }
+export const getMissionsByStoreId = async (storeId, cursor, limit) => {
+  try {
+    const missions = await prisma.mission.findMany({
+      where: { store_id: storeId },
+      take: limit,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: { deadline: "asc" },
+    });
+    return missions;
+  } catch (err) {
+    throw new Error(`Failed to retrieve missions: ${err.message}`);
+  }
 };

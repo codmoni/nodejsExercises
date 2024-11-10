@@ -1,26 +1,34 @@
-import { pool } from "../db.config.js";
+import { prisma } from "../db.config.js";
 
 export const addStore = async (storeData) => {
-    const conn = await pool.getConnection();
+  try {
+    const store = await prisma.store.create({
+      data: {
+        owner_id: storeData.ownerId,
+        food_id: storeData.foodId,
+        region_id: storeData.regionId,
+        detail_address: storeData.detailAddress,
+        name: storeData.name,
+        opening_time: storeData.openingTime,
+        closing_time: storeData.closingTime,
+      },
+    });
+    return store.id;
+  } catch (err) {
+    throw new Error(`Store creation failed: ${err.message}`);
+  }
+};
 
-    try {
-        const [result] = await pool.query(
-            `INSERT INTO store (owner_id, food_id, region_id, detail_address, name, opening_time, closing_time) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [
-                storeData.ownerId,
-                storeData.foodId,
-                storeData.regionId,
-                storeData.detailAddress,
-                storeData.name,
-                storeData.openingTime,
-                storeData.closingTime
-            ]
-        );
-        return result.insertId;
-    } catch (err) {
-        throw new Error(`Store creation failed: ${err.message}`);
-    } finally {
-        conn.release();
-    }
+export const getReviewByStoreId = async (storeId, cursor, limit) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { store_id: storeId },
+      take: limit,
+      skip: cursor ? 1 : 0,
+      orderBy: { created_at: "desc" },
+    });
+    return reviews;
+  } catch (err) {
+    throw new Error(`Failed to retrieve reviews for store: ${err.message}`);
+  }
 };

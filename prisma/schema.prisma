@@ -1,0 +1,172 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              BigInt     @id @default(autoincrement())
+  status          Int?
+  inactive_days   Int?
+  point           BigInt?
+  name            String?    @db.VarChar(10)
+  email           String?    @db.VarChar(30)
+  mobile_number   String?    @db.VarChar(15)
+  gender          Gender?    
+  birth           DateTime?
+  address         String?    @db.VarChar(50)
+  user_type       UserType
+  location        String?    @db.VarChar(20)
+  password        String?    @db.VarChar(20)
+  password_confirm String?   @db.VarChar(20)
+
+  stores          Store[]       @relation("UserStores") // Store와의 관계
+  myFoods         MyFood[]      // MyFood와의 관계
+  myMissions      MyMission[]   // MyMission과의 관계
+  myStores        MyStore[]     // MyStore와의 관계
+  reviews         Review[]      // Review와의 관계
+  myAlarms        MyAlarm[]     // MyAlarm과의 관계
+  qnas            QnA[]         // QnA와의 관계
+}
+
+model Store {
+  id              BigInt     @id @default(autoincrement())
+  owner_id        BigInt
+  food_id         Int
+  region_id       BigInt
+  detail_address  String?    @db.VarChar(20)
+  name            String?    @db.VarChar(20)
+  opening_time    DateTime?
+  closing_time    DateTime?
+  total_score     Float?
+  thumbnail_image String?    @db.VarChar(100)
+
+  owner           User       @relation("UserStores", fields: [owner_id], references: [id])
+  food            Food       @relation(fields: [food_id], references: [id])
+  region          Region     @relation(fields: [region_id], references: [id])
+  missions        Mission[]  
+  reviews         Review[]   
+  my_stores       MyStore[]  
+}
+
+model Mission {
+  id              BigInt     @id @default(autoincrement())
+  store_id        BigInt
+  point           Int?
+  deadline        DateTime?
+  content         String?    @db.VarChar(30)
+
+  store           Store      @relation(fields: [store_id], references: [id])
+  my_missions     MyMission[] 
+}
+
+model Food {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(10)
+
+  stores  Store[]  // Store와의 관계 설정
+  myFoods MyFood[] // MyFood와의 관계 설정
+}
+
+model Region {
+  id   BigInt  @id @default(autoincrement())
+  name String? @db.VarChar(50)
+
+  stores Store[] // Store와의 관계 설정
+}
+
+model Alarm {
+  id          BigInt   @id @default(autoincrement())
+  category    String?  @db.VarChar(20)
+  category_id BigInt?
+  body        String?  @db.VarChar(30)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  myAlarms MyAlarm[] // MyAlarm과의 관계 설정
+}
+
+
+model MyMission {
+  user_id         BigInt
+  mission_id      BigInt
+  complete        Boolean?
+
+  user            User       @relation(fields: [user_id], references: [id])
+  mission         Mission    @relation(fields: [mission_id], references: [id])
+
+  @@id([user_id, mission_id]) 
+}
+
+model Review {
+  id              BigInt     @id @default(autoincrement())
+  user_id         BigInt
+  store_id        BigInt
+  score           Float?
+  text            String?    @db.VarChar(200)
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+
+  user            User       @relation(fields: [user_id], references: [id])
+  store           Store      @relation(fields: [store_id], references: [id])
+}
+
+model MyFood {
+  user_id  BigInt
+  food_id  Int
+
+  user     User   @relation(fields: [user_id], references: [id])
+  food     Food   @relation(fields: [food_id], references: [id])
+
+  @@id([user_id, food_id])
+}
+
+model MyStore {
+  user_id  BigInt
+  store_id BigInt
+  id       BigInt @id @default(autoincrement())
+
+  user     User   @relation(fields: [user_id], references: [id])
+  store    Store  @relation(fields: [store_id], references: [id])
+}
+
+model MyAlarm {
+  alarm_id   BigInt
+  user_id    BigInt
+  is_actived Boolean?
+  is_confirmed Boolean?
+
+  alarm      Alarm @relation(fields: [alarm_id], references: [id])
+  user       User  @relation(fields: [user_id], references: [id])
+
+  @@id([alarm_id, user_id])
+}
+
+model QnA {
+  id          BigInt @id @default(autoincrement())
+  user_id     BigInt
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  question    String?  @db.VarChar(200)
+  answer      String?  @db.VarChar(400)
+
+  user        User  @relation(fields: [user_id], references: [id])
+}
+
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum UserType {
+  USER
+  OWNER
+  ADMIN
+}
