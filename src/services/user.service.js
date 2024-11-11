@@ -1,37 +1,37 @@
 import { responseFromUser } from "../dtos/user.dto.js";
 import {
-    addUser,
-    getUser,
-    getUserPreferenceByUserId,
-    setPreference,
-} from "../repositories/user.repository.js"
+  addUser,
+  getUser,
+  getUserPreferenceByUserId,
+  setPreference,
+} from "../repositories/user.repository.js";
+import { UserType } from "@prisma/client";
 
-export const userSignUp = async(data)=>{
-    const joinUserId = await addUser({
-        "email": data.email,
-        "name" : data.name,
-        "gender": data.gender,
-        "location": data.location,
-        "mobileNumber": data.mobileNumber,
-        "birth": data.birth,
-        "address": data.address,
-        "password": data.password,
-        "passwordConfirm": data.passwordConfirm,
-        "userType": data.userType,
-        "userState": data.userState,
-        "point": 0,
-    });
+export const userSignUp = async (data) => {
+  const createdUser = await addUser({
+    email: data.email,
+    name: data.name,
+    gender: data.gender,
+    location: data.location,
+    mobileNumber: data.mobileNumber,
+    birth: data.birth,
+    address: data.address,
+    password: data.password,
+    passwordConfirm: data.passwordConfirm,
+    userType: UserType[data.userType],
+    userState: data.userState,
+    point: 0,
+  });
 
-    if(joinUserId == null){
-        throw new Error("이미 존재하는 이메일입니다.");
-    }
+  if (createdUser == null) {
+    throw new Error("이미 존재하는 이메일입니다.");
+  }
 
-    for(const preference of data.preferences){
-        await setPreference(joinUserId, preference);
-    }
+  for (const preference of data.preferences) {
+    await setPreference(createdUser.id, preference);
+  }
 
-    const user = await getUser(joinUserId);
-    const preferences = await getUserPreferenceByUserId(joinUserId);
+  const preferences = await getUserPreferenceByUserId(createdUser.id);
 
-    return responseFromUser({user, preferences});
-}
+  return responseFromUser({ user: createdUser, preferences });
+};

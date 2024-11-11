@@ -11,6 +11,7 @@ export const handleAddReview = async (req, res) => {
     const review = await addReviewService(reviewData);
     res.status(StatusCodes.CREATED).json(review);
   } catch (error) {
+    console.error("리뷰 추가 중 오류 발생:", error.message);
     res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
 };
@@ -22,6 +23,7 @@ export const handleListUserReviews = async (req, res) => {
     const reviews = await listUserReviews(userId, cursor, parseInt(limit, 10));
     res.status(StatusCodes.OK).json(reviews);
   } catch (error) {
+    console.error("나의 리뷰 조회 중 오류 발생:", error.message);
     res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
 };

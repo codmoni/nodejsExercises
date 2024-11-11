@@ -15,7 +15,7 @@ model User {
   inactive_days   Int?
   point           BigInt?
   name            String?    @db.VarChar(10)
-  email           String?    @db.VarChar(30)
+  email           String?    @unique @db.VarChar(30)
   mobile_number   String?    @db.VarChar(15)
   gender          Gender?    
   birth           DateTime?

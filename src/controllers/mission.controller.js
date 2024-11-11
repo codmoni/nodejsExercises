@@ -11,6 +11,7 @@ export const handleAddMission = async (req, res) => {
     const mission = await addMissionService(missionData);
     res.status(StatusCodes.CREATED).json(mission);
   } catch (error) {
+    console.error("미션생성 중 오류 발생:", error.message);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: error.message });
@@ -28,6 +29,7 @@ export const handleListStoreMissions = async (req, res) => {
     );
     res.status(StatusCodes.OK).json(missions);
   } catch (error) {
+    console.error("가게의 미션 조회 중 오류 발생:", error.message);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: error.message });

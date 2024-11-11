@@ -5,7 +5,7 @@
   "description": "umc nodejs week3 exercise",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "start": "node src/index.js",
     "dev": "nodemon -e js,json,prisma --exec \"prisma generate && node src/index.js\""
   },
@@ -21,8 +21,6 @@
     "prisma": "^5.22.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
-    "nodemon": "^3.1.7",
-    "supertest": "^7.0.0"
+    "nodemon": "^3.1.7"
   }
 }
