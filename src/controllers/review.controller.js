@@ -7,23 +7,36 @@ import {
 
 export const handleAddReview = async (req, res) => {
   try {
-    const reviewData = bodyToReview(req.body);
-    const review = await addReviewService(reviewData);
-    res.status(StatusCodes.CREATED).json(review);
+    console.log("리뷰 생성을 요청했습니다.");
+    console.log("req body: ", req.body);
+
+    const review = await addReviewService(bodyToReview(req.body));
+
+    res.status(StatusCodes.CREATED).success(review);
   } catch (error) {
-    console.error("리뷰 추가 중 오류 발생:", error.message);
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    res.status(StatusCodes.BAD_REQUEST).error({
+      errorCode: "리뷰 생성 오류 발생",
+      reason: error.message,
+      data: error.data || null,
+    });
   }
 };
 
 export const handleListUserReviews = async (req, res) => {
   try {
+    console.log("유저 리뷰 조회를 요청했습니다.");
+    console.log("req.body: ", req.body);
+
     const { userId } = req.params;
     const { cursor, limit } = req.query;
     const reviews = await listUserReviews(userId, cursor, parseInt(limit, 10));
-    res.status(StatusCodes.OK).json(reviews);
+
+    res.status(StatusCodes.OK).success(reviews);
   } catch (error) {
-    console.error("나의 리뷰 조회 중 오류 발생:", error.message);
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    res.status(StatusCodes.BAD_REQUEST).error({
+      errorCode: "유저 리뷰 조회 오류 발생",
+      reason: error.message,
+      data: error.data || null,
+    });
   }
 };

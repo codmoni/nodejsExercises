@@ -6,7 +6,9 @@ import {
   setPreference,
 } from "../repositories/user.repository.js";
 import { UserType } from "@prisma/client";
+import { DuplicateUserEmailError } from "../utils/error.js";
 
+// 회원 가입(회원 생성)
 export const userSignUp = async (data) => {
   const createdUser = await addUser({
     email: data.email,
@@ -24,7 +26,7 @@ export const userSignUp = async (data) => {
   });
 
   if (createdUser == null) {
-    throw new Error("이미 존재하는 이메일입니다.");
+    throw new DuplicateUserEmailError("이미 존재하는 이메일입니다.", data);
   }
 
   for (const preference of data.preferences) {

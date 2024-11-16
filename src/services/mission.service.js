@@ -5,11 +5,19 @@ import {
 import { responseFromMission } from "../dtos/mission.dto.js";
 
 export const addMissionService = async (missionData) => {
-  const missionId = await addMission(missionData);
-  return responseFromMission({ id: missionId, ...missionData });
+  try {
+    const missionId = await addMission(missionData);
+    return responseFromMission({ id: missionId, ...missionData });
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const listStoreMissions = async (storeId, cursor, limit = 10) => {
-  const missions = await getMissionsByStoreId(storeId, cursor, limit);
-  return missions.map(responseFromMission);
+  try {
+    const missions = await getMissionsByStoreId(storeId, cursor, limit);
+    return missions.map(responseFromMission);
+  } catch (error) {
+    throw error;
+  }
 };

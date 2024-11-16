@@ -4,11 +4,17 @@ import { challengeMissionService } from "../services/myMission.service.js";
 
 export const handleChallengeMission = async (req, res, next) => {
   try {
-    const challengeData = bodyToMyMission(req.body);
-    const myMission = await challengeMissionService(challengeData);
-    res.status(StatusCodes.CREATED).json(myMission);
+    console.log("도전 미션 생성을 요청했습니다.");
+    console.log("req body: ", req.body);
+
+    const myMission = await challengeMissionService(bodyToMyMission(req.body));
+
+    res.status(StatusCodes.CREATED).success(myMission);
   } catch (error) {
-    console.error("도전 미션 추가 중 오류 발생:", error.message);
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    res.status(StatusCodes.BAD_REQUEST).error({
+      errorCode: "도전 미션 생성 오류 발생",
+      reason: error.message,
+      data: error.data || null,
+    });
   }
 };

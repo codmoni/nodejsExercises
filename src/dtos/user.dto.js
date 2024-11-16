@@ -1,5 +1,8 @@
 export const bodyToUser = (body) => {
-  const birth = new Date(body.birth);
+  const birth = body.birth ? new Date(body.birth) : null;
+  if (birth && isNaN(birth.getTime())) {
+    throw new Error("유효하지 않은 생년월일입니다.");
+  }
 
   return {
     email: body.email,
@@ -19,9 +22,10 @@ export const bodyToUser = (body) => {
 };
 
 export const responseFromUser = ({ user, preferences }) => {
-  const birth = new Date(user.birth);
+  const birth = user.birth ? new Date(user.birth) : null;
 
   return {
+    id: user.id,
     email: user.email,
     name: user.name,
     gender: user.gender,
@@ -33,7 +37,7 @@ export const responseFromUser = ({ user, preferences }) => {
     passwordConfirm: user.passwordConfirm,
     userType: user.userType,
     userState: user.userState,
-    point: 0,
+    point: user.point || 0,
     preferences: preferences,
   };
 };

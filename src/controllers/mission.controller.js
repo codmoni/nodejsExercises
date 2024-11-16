@@ -7,19 +7,26 @@ import {
 
 export const handleAddMission = async (req, res) => {
   try {
-    const missionData = bodyToMission(req.body);
-    const mission = await addMissionService(missionData);
-    res.status(StatusCodes.CREATED).json(mission);
+    console.log("미션 추가를 요청했습니다.");
+    console.log("req.body: ", req.body);
+
+    const mission = await addMissionService(bodyToMission(req.body));
+
+    res.status(StatusCodes.CREATED).success(mission);
   } catch (error) {
-    console.error("미션생성 중 오류 발생:", error.message);
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).error({
+      errorCode: "미션 추가 오류 발생",
+      reason: error.message,
+      data: error.data || null,
+    });
   }
 };
 
 export const handleListStoreMissions = async (req, res) => {
   try {
+    console.log("가게 미션 조회를 요청했습니다.");
+    console.log("req body: ", req.body);
+
     const { storeId } = req.params;
     const { cursor, limit } = req.query;
     const missions = await listStoreMissions(
@@ -27,11 +34,13 @@ export const handleListStoreMissions = async (req, res) => {
       cursor,
       parseInt(limit, 10)
     );
-    res.status(StatusCodes.OK).json(missions);
+
+    res.status(StatusCodes.OK).success(missions);
   } catch (error) {
-    console.error("가게의 미션 조회 중 오류 발생:", error.message);
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).error({
+      errorCode: "가게 미션 조회 오류 발생",
+      reason: error.message,
+      data: error.data || null,
+    });
   }
 };

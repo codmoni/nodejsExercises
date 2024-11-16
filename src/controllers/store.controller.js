@@ -2,15 +2,19 @@ import { StatusCodes } from "http-status-codes";
 import { bodyToStore } from "../dtos/store.dto.js";
 import { addStoreService } from "../services/store.service.js";
 
-export const handleAddStore = async (req, res, next) => {
+export const handleAddStore = async (req, res) => {
   try {
-    const storeData = bodyToStore(req.body);
-    const store = await addStoreService(storeData);
-    res.status(StatusCodes.CREATED).json(store);
+    console.log("가게 생성을 요청했습니다.");
+    console.log("req body: ", req.body);
+
+    const store = await addStoreService(bodyToStore(req.body));
+
+    res.status(StatusCodes.CREATED).success(store);
   } catch (error) {
-    console.error("새로운 가게 추가 중 오류 발생:", error.message);
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).error({
+      errorCode: "가게 생성 오류 발생",
+      reason: error.message,
+      data: error.data || null,
+    });
   }
 };

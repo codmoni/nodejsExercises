@@ -1,5 +1,6 @@
 import { prisma } from "../db.config.js";
 
+// Create User
 export const addUser = async (data) => {
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email },
@@ -25,9 +26,15 @@ export const addUser = async (data) => {
   return createdUser;
 };
 
+//Read user by userId
 export const getUser = async (userId) => {
-  const user = await prisma.user.findFirstOrThrow({ where: { id: userId } });
-  return user;
+  try {
+    const user = await prisma.user.findFirstOrThrow({ where: { id: userId } });
+    return user;
+  } catch (error) {
+    console.error(`User Id ${userId} 조회 실패:`, error.message);
+    throw error;
+  }
 };
 
 export const setPreference = async (userId, foodCategoryId) => {
