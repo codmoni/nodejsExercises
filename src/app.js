@@ -1,10 +1,19 @@
 import cors from "cors";
+import path from "path";
 import express from "express";
 import { handleUserSignUp } from "./controllers/user.controller.js";
 import { handleAddStore } from "./controllers/store.controller.js";
 import { handleAddReview } from "./controllers/review.controller.js";
-import { handleAddMission } from "./controllers/mission.controller.js";
-import { handleChallengeMission } from "./controllers/myMission.controller.js";
+import { handleAddMission, handleListStoreMissions } from "./controllers/mission.controller.js";
+import { handleChallengeMission,handleListOngoingMissions, handleCompleteMission, } from "./controllers/myMission.controller.js";
+import swaggerUiExpress from "swagger-ui-express";
+import swaggerAutogen from "swagger-autogen";
+import userRouter from "./routes/user.router.js";
+import storeRouter from "./routes/store.router.js";
+import reviewRouter from "./routes/review.router.js";
+import missionRouter from "./routes/mission.router.js";
+import myMissionRouter from "./routes/myMission.router.js";
+
 
 // app.js는 Express 미들웨어를 사용하고 라우트 설정을 담당하는 데에 집중
 // Express 앱의 확장성을 고려할 때 index.js와 분리하는 게 더 좋은 것 같음
@@ -31,15 +40,65 @@ app.use((req, res, next) => {
   next();
 });
 
+// Swagger(openapi) 관련 설정
+app.use(
+  "/docs",
+  swaggerUiExpress.serve,
+  swaggerUiExpress.setup(
+    {},
+    {
+      swaggerOptions: {
+        url: "/openapi.json",
+      },
+    }
+  )
+);
+
+app.get("/openapi.json", async (req, res, next) => {
+  const options = {
+    openapi: "3.0.0",
+    disableLogs: false,
+    writeOutputFile: true,
+  };
+  const outputFile = path.resolve("./swagger-output.json");
+  const routes = [
+    path.resolve("./src/app.js"),
+    path.resolve("./src/routes/user.routers.js"),
+  ];
+  const doc = {
+    info: {
+      title: "UMC 7th",
+      description: "UMC 7th Node.js 테스트 프로젝트입니다.",
+      version: "1.0.0",
+    },
+    servers: [
+      {
+        url: "http://localhost:3000", // 서버 URL
+      },
+    ],
+    // host: "localhost:3000",
+  };
+  try {
+    const result = await swaggerAutogen(options)(outputFile, routes, doc);
+    res.json(result.data);
+  } catch (error) {
+    console.error("[swagger-autogen]: Error generating OpenAPI JSON", error);
+    res.status(500).json({ error: "Failed to generate OpenAPI JSON" });
+  }
+});
+
+
+// Routers
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.post("/users/signup", handleUserSignUp);
-app.post("/stores", handleAddStore);
-app.post("/reviews", handleAddReview);
-app.post("/missions", handleAddMission);
-app.post("/my-missions", handleChallengeMission);
+app.use("/users", userRouter);
+app.use("/stores", storeRouter);
+app.use("/reviews", reviewRouter);
+app.use("/missions", missionRouter);
+app.use("/my-missions", myMissionRouter);
+
 
 // 전역 오류를 처리하기 위한 미들웨어
 app.use((err, req, res, next) => {

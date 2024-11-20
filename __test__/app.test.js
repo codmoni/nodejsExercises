@@ -2,6 +2,7 @@ import request from "supertest";
 import app from "../src/app.js";
 import { seedFoodCategories } from "../src/seeds/foodSeeds.js";
 import * as userRepository from "../src/repositories/user.repository.js";
+import { DuplicateUserEmailError } from "../src/utils/error.js";
 
 // 데이터 시드 및 환경 설정
 beforeAll(async () => {
@@ -60,7 +61,10 @@ describe("POST /users/signup", () => {
       });
 
     // Then: API가 성공적으로 응답하고, 기대한 사용자 ID를 포함해야 함
+    console.log("Response Body:", response.body);
+
     expect(response.status).toBe(200);
+    expect(response.body.resultType).toBe("SUCCESS");
     expect(response.body.success).toHaveProperty("id", mockUserId);
     expect(userRepository.addUser).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -68,5 +72,55 @@ describe("POST /users/signup", () => {
       })
     );
     expect(userRepository.setPreference).toHaveBeenCalledTimes(3); // preferences 호출 횟수 검증
+  });
+
+  it("should return an error if the email is already registered", async () => {
+    //Given: 이미 존재하는 사용자의 이메일
+    const mockUserData = {
+      email: "existinguser@example.com",
+      name: "회원15",
+      gender: "FEMALE",
+      location: "Test Location 3",
+      mobileNumber: "0987654321",
+      birth: "1990-01-01",
+      address: "Test Address",
+      password: "testpassword",
+      passwordConfirm: "testpassword",
+      userType: "USER",
+      userState: 1,
+      point: 0,
+    };
+
+    jest.spyOn(userRepository, "addUser").mockImplementation(() => {
+      throw new DuplicateUserEmailError("이미 존재하는 이메일입니다.", {
+        email: mockUserData.email,
+      });
+    });
+
+    //When: 이미 등록된 이메일로 회원가입 요청
+    const response = await request(app)
+      .post("/users/signup")
+      .send(mockUserData);
+
+    //Then: 실패 응답 검증
+    console.log("Response body: ", response.body);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      resultType: "FAIL",
+      error: {
+        errorCode: "U001",
+        reason: "이미 존재하는 이메일입니다.",
+        data: {
+          email: mockUserData.email,
+        },
+      },
+      success: null,
+    });
+    expect(userRepository.addUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: mockUserData.email,
+      })
+    );
   });
 });

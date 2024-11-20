@@ -14,7 +14,7 @@ export const handleUserSignUp = async (req, res) => {
     res.status(StatusCodes.OK).success(user);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).error({
-      errorCode: "회원가입 오류 발생",
+      errorCode: error.errorCode || "회원가입 오류 발생",
       reason: error.message,
       data: error.data || null,
     });
