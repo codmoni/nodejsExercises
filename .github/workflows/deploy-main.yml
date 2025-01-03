@@ -51,7 +51,7 @@ jobs:
       # 4. 종속성 설치
       - name: Install dependencies
         run: |
-          ssh umc-nodejs-exercise 'npm install --prefix /opt/app/'
+          ssh -o ServerAliveInterval=60 umc-nodejs-exercise 'npm install --prefix /opt/app/'
 
       # 5. systemd 서비스 파일 생성 및 복사
       - name: Copy systemd service file
