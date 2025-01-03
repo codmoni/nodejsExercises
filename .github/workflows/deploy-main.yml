@@ -1,18 +1,21 @@
-name: deploy-main  # 파이프라인 이름은 자유롭게 지어주세요
+name: deploy-main  # 파이프라인 이름은 자유롭게 설정 가능
 
 on:
   push:
     branches:
-      - main  # main 브랜치에 새로운 커밋이 올라왔을 떄 실행되도록 합니다
-  workflow_dispatch:  # 필요한 경우 수동으로 실행할 수도 있도록 합니다
+      - main  # main 브랜치에 새로운 커밋이 올라왔을 때 실행
+  workflow_dispatch:  # 수동 실행 가능
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # CI/CD 파이프라인이 실행될 운영체제 환경을 지정합니다
+    runs-on: ubuntu-latest  # CI/CD 파이프라인 실행 환경 지정
+
     steps:
+      # 1. GitHub 저장소의 코드를 가져오기
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. SSH 연결 설정
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
@@ -20,7 +23,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
           cat >>~/.ssh/config <<END
-          Host playground-umc-7th
+          Host umc-nodejs-exercise
             HostName $EC2_HOST
             User $EC2_USER
             IdentityFile ~/.ssh/id_rsa
@@ -31,19 +34,22 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
+      # 3. EC2로 작업 디렉토리 복사
       - name: Copy Workspace
         run: |
-          ssh playground-umc-7th 'sudo mkdir -p /opt/app'
-          ssh playground-umc-7th 'sudo chown ubuntu:ubuntu /opt/app'
-          scp -r ./[!.]* playground-umc-7th:/opt/app
+          ssh umc-nodejs-exercise 'sudo mkdir -p /opt/app'
+          ssh umc-nodejs-exercise 'sudo chown ubuntu:ubuntu /opt/app'
+          scp -r ./[!.]* umc-nodejs-exercise:/opt/app
 
+      # 4. 종속성 설치
       - name: Install dependencies
         run: |
-          ssh playground-umc-7th 'npm install --prefix /opt/app/'
+          ssh umc-nodejs-exercise 'npm install --prefix /opt/app/'
 
+      # 5. systemd 서비스 파일 생성 및 복사
       - name: Copy systemd service file
         run: |
-          ssh playground-umc-7th '
+          ssh umc-nodejs-exercise '
             echo "[Unit]
             Description=UMC 7th Project
             After=network.target
@@ -57,11 +63,13 @@ jobs:
             WantedBy=multi-user.target" | sudo tee /etc/systemd/system/app.service
           '
 
+      # 6. systemd 서비스 활성화
       - name: Enable systemd service
         run: |
-          ssh playground-umc-7th 'sudo systemctl daemon-reload'
-          ssh playground-umc-7th 'sudo systemctl enable app'
+          ssh umc-nodejs-exercise 'sudo systemctl daemon-reload'
+          ssh umc-nodejs-exercise 'sudo systemctl enable app'
 
+      # 7. 서비스 재시작
       - name: Restart systemd service
         run: |
-          ssh playground-umc-7th 'sudo systemctl restart app'
+          ssh umc-nodejs-exercise 'sudo systemctl restart app'
