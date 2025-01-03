@@ -4,3 +4,4 @@ node_modules/
 # Ignore environment variables
 .env
 playground-umc-7th.pem
+umc-nodejs-exercise.pem

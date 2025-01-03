@@ -19,6 +19,8 @@ jobs:
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
+          if [ -z "$EC2_SSH_KEY" ]; then echo "Error: EC2_SSH_KEY is missing!"; exit 1; fi
+          if [ -z "$EC2_HOST" ]; then echo "Error: EC2_HOST is missing!"; exit 1; fi
           echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
@@ -34,6 +36,11 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
+      - name: Verify SSH Config
+        run: |
+            echo "SSH Config:"
+            cat ~/.ssh/config
+        
       # 3. EC2로 작업 디렉토리 복사
       - name: Copy Workspace
         run: |
